@@ -17,7 +17,6 @@ public class Main {
 
   public static void main(String[] args) {
 
-    DynamicMapping mapping = new DynamicMapping();
 
     for (int i = 1; i < 100; i++) {
 
@@ -35,7 +34,7 @@ public class Main {
       destination.setAge(d);
       destination.setAddress(new Destination.Address("D"+d, new Destination.StreetName("sesame street "+d)));
       System.out.println(destination);
-    System.out.println(mapping.map(source, destination, RULES));
+    System.out.println(DynamicMapping.map(source, destination, RULES));
     }
 
 

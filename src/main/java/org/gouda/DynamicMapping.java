@@ -32,6 +32,8 @@ final public class DynamicMapping {
   private static final WeakHashMap<String, Tuple<Function, BiConsumer>> CACHE          = new WeakHashMap<>();
 
 
+  private DynamicMapping() {
+  }
 
   public static <S, D> D map(S source, D destination, Rules rules) {
 
