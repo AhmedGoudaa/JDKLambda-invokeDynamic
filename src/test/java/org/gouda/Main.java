@@ -1,5 +1,6 @@
 package org.gouda;
 
+import org.gouda.data.*;
 
 public class Main {
 

@@ -1,4 +1,4 @@
-package org.gouda;
+package org.gouda.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -6,24 +6,23 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Source {
+public class Destination {
 
   int         id;
   String      name;
   int         age;
   Address     address;
-  List<Phone> phones;
+  List<Phone> phoneList;
 
 
   @Data
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Address {
-    String     name;
+    String     addressName;
     StreetName streetName;
 
   }
@@ -39,7 +38,9 @@ public class Source {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Phone {
-    String number;
+    String num;
   }
 
 }
+
+

@@ -43,7 +43,6 @@ final public class DynamicMapping {
 
   public static <S, D> D map(S source, D destination, Rule rule) {
 
-
     Tuple<Function, BiConsumer> getterAndSetter =
             CACHE.computeIfAbsent(rule.getName(), k -> {
               Function   getFunction    = createGetFunction(source.getClass(), FIELD_SEPARATOR.split(rule.getSourcePath()))._2;

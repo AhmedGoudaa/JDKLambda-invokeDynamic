@@ -1,5 +1,7 @@
 package org.gouda;
 
+import org.gouda.data.Destination;
+import org.gouda.data.Source;
 import org.openjdk.jmh.Main;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
