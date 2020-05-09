@@ -91,7 +91,8 @@ final public class DynamicMapping {
               (Function) createGetterCallSite(LOOKUP.unreflect(getterMethod)).getTarget().invokeExact()
       );
     } catch (Throwable e) {
-      throw new IllegalArgumentException("Lambda creation failed for getterMethod (" + getterMethod.getName() + ").", e);
+
+      throw new IllegalArgumentException("Can't create lambda for getterMethod => " + getterMethod.getName(), e);
     }
   }
 
@@ -203,7 +204,7 @@ final public class DynamicMapping {
         biConsumer.accept(obj, b);
       };
     } catch (Throwable e) {
-      throw new IllegalArgumentException("Lambda creation failed for setterMethod (" + method.getName() + ").", e);
+      throw new IllegalArgumentException("Can't create lambda for setterMethod => " + method.getName() , e);
     }
   }
 
