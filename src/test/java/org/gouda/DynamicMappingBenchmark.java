@@ -17,7 +17,11 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.runner.RunnerException;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Fork(2)
 @Warmup(iterations = 4, time = 2)
@@ -27,16 +31,22 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Thread)
 public class DynamicMappingBenchmark {
 
+  static final Function<Source.Phone, Destination.Phone>                         PHONE_PHONE_FUNCTION = (Source.Phone sourcePhone) -> new Destination.Phone(sourcePhone.getNumber());
+  static final   Function<Map.Entry<Integer, String>, Map.Entry<Integer, Integer>> MAP_MAP_FUNCTION     = (Map.Entry<Integer, String> entry) -> Map.entry(entry.getKey(), Integer.valueOf(entry.getValue()));
+
   public static final Rules RULES = new Rules.RulesBuilder()
           .rule(new Rule("Name", "getName", "setName"))
           .rule(new Rule("Address name", "getAddress.getName", "getAddress.setAddressName"))
+          .rule(new Rule("Phone numbers", "getPhones", "setPhoneList", PHONE_PHONE_FUNCTION))
+          .rule(new Rule("Simple map mapping", "getMapSimple", "setMapSimple"))
+          .rule(new Rule("Complicated map mapping", "getMapComplicated", "setMapComplicated", MAP_MAP_FUNCTION))
           .build();
 
 
-  @Param({
-          "0",
-          "1"
-  })
+//  @Param({
+//          "0",
+//          "1"
+//  })
   int index;
 
   Source      source;
@@ -51,6 +61,11 @@ public class DynamicMappingBenchmark {
     source.setAge(1);
     Source.Address address = new Source.Address("21 st ", new Source.StreetName("_"));
     source.setAddress(address);
+    source.setPhones(List.of(new Source.Phone(" source phone 1"),new Source.Phone(" source phone 2")));
+
+    source.setMapSimple(Map.of(1,"source1",2,"Source2"));
+    source.setMapComplicated(Map.of(1,"1",2,"2"));
+
     destination = new Destination();
     destination.setId(2);
     destination.setName("Any");
@@ -61,7 +76,7 @@ public class DynamicMappingBenchmark {
 
 
 
-  @Benchmark
+//  @Benchmark
   public Object invokeDynamic_SingleRule() {
     return DynamicMapping.map(source,destination, RULES.getRules().get(index));
   }
@@ -75,6 +90,21 @@ public class DynamicMappingBenchmark {
   public Object invokeVirtual() {
     destination.setName(source.getName());
     destination.getAddress().setAddressName(source.getAddress().getName());
+    List<Destination.Phone> phoneList = source.getPhones()
+            .stream()
+            .map(phone -> new Destination.Phone(phone.getNumber()))
+            .collect(Collectors.toList());
+    destination.setPhoneList(phoneList);
+
+    destination.setMapSimple(source.getMapSimple());
+
+    Map<Integer, Integer> integerIntegerMap = source.getMapComplicated()
+            .entrySet()
+            .stream()
+            .map(MAP_MAP_FUNCTION)
+            .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue(), (o, o2) -> o2));
+
+    destination.setMapComplicated(integerIntegerMap);
     return destination;
   }
 

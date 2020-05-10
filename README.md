@@ -8,16 +8,16 @@ and many more and used a lot by graalvm
     
 ```java
 var rule1 = new Rule("Name", "getName", "setName");
-var rule2 = new Rule("Address name", "getAddress.getName", "getAddress.setAddressName"))
+var rule2 = new Rule("Address name", "getAddress.getName", "getAddress.setAddressName");
+var rule3 = new Rule("Phone numbers", "getPhones", "setPhoneList", PHONE_PHONE_FUNCTION);
+var rule4 = new Rule("Simple map mapping", "getMapSimple", "setMapSimple");
+var rule5 = new Rule("Complicated map mapping", "getMapComplicated", "setMapComplicated", MAP_MAP_FUNCTION);
 ````
  
-|			Benchmark                                  | (rule) | Mode | Cnt |  Score   | Error | Units|
-| ---------------------------------------------------- | ------ | ---- | --- | -------- | ----- | ---- |
-|DynamicMappingBenchmark.invokeDynamicWithAllTheRules  |      _ | avgt |   6 | 54.023 ± |20.012 | ns/op|
-|DynamicMappingBenchmark.invokeDynamicWithAllTheRules  |      _ | avgt |   6 | 51.146 ± | 0.942 | ns/op|
-|DynamicMappingBenchmark.invokeDynamic_SingleRule      |      1 | avgt |   6 | 15.549 ± | 0.189 | ns/op|
-|DynamicMappingBenchmark.invokeDynamic_SingleRule      |      2 | avgt |   6 | 25.589 ± | 0.427 | ns/op|
-|DynamicMappingBenchmark.invokeVirtual                 |      _ | avgt |   6 | 10.134 ± | 0.629 | ns/op|
-|DynamicMappingBenchmark.invokeVirtual                 |      _ | avgt |   6 |  9.870 ± | 0.452 | ns/op|
 
-
+|Benchmark                                            |(index) |Mode  | Cnt |  Score    | Error | Units  |
+| --------------------------------------------------- | ------ | ---- | --- | --------- | ----- | ------ |
+|DynamicMappingBenchmark.invokeDynamicWithAllTheRules |    N/A |avgt  | 8   | 402.480 ± |30.886 | ns/op |
+|DynamicMappingBenchmark.invokeDynamic_SingleRule     |      1 |avgt  | 6   |  15.633 ± | 0.504 | ns/op |
+|DynamicMappingBenchmark.invokeDynamic_SingleRule     |      2 |avgt  | 6   |  32.697 ± |21.061 | ns/op |
+|DynamicMappingBenchmark.invokeVirtual                |    N/A |avgt  | 8   | 279.842 ± |30.260 | ns/op |

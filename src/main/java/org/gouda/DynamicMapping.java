@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unchecked")
 final public class DynamicMapping {
 
   private static final Pattern              FIELD_SEPARATOR = Pattern.compile("\\.");
@@ -148,7 +149,7 @@ final public class DynamicMapping {
 
         if (parameterType == double.class) {
 
-          ObjDoubleConsumer consumer = (ObjDoubleConsumer) createSetterCallSite(methodHandle, ObjDoubleConsumer.class, double.class).getTarget().invokeExact();
+          final ObjDoubleConsumer consumer = (ObjDoubleConsumer) createSetterCallSite(methodHandle, ObjDoubleConsumer.class, double.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (double) b);
@@ -156,7 +157,7 @@ final public class DynamicMapping {
 
         } else if (parameterType == int.class) {
 
-          ObjIntConsumer consumer = (ObjIntConsumer) createSetterCallSite(methodHandle, ObjIntConsumer.class, int.class).getTarget().invokeExact();
+          final ObjIntConsumer consumer = (ObjIntConsumer) createSetterCallSite(methodHandle, ObjIntConsumer.class, int.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (int) b);
@@ -164,7 +165,7 @@ final public class DynamicMapping {
 
         } else if (parameterType == long.class) {
 
-          ObjLongConsumer consumer = (ObjLongConsumer) createSetterCallSite(methodHandle, ObjLongConsumer.class, long.class).getTarget().invokeExact();
+          final ObjLongConsumer consumer = (ObjLongConsumer) createSetterCallSite(methodHandle, ObjLongConsumer.class, long.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (long) b);
@@ -172,7 +173,7 @@ final public class DynamicMapping {
 
         } else if (parameterType == boolean.class) {
 
-          ObjBoolConsumer consumer = (ObjBoolConsumer) createSetterCallSite(methodHandle, ObjLongConsumer.class, boolean.class).getTarget().invokeExact();
+          final ObjBoolConsumer consumer = (ObjBoolConsumer) createSetterCallSite(methodHandle, ObjLongConsumer.class, boolean.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (boolean) b);
@@ -180,7 +181,7 @@ final public class DynamicMapping {
 
         } else if (parameterType == float.class) {
 
-          ObjFloatConsumer consumer = (ObjFloatConsumer) createSetterCallSite(methodHandle, ObjLongConsumer.class, float.class).getTarget().invokeExact();
+          final ObjFloatConsumer consumer = (ObjFloatConsumer) createSetterCallSite(methodHandle, ObjLongConsumer.class, float.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (float) b);
@@ -188,7 +189,7 @@ final public class DynamicMapping {
 
         } else if (parameterType == char.class) {
 
-          ObjCharConsumer consumer = (ObjCharConsumer) createSetterCallSite(methodHandle, ObjCharConsumer.class, char.class).getTarget().invokeExact();
+          final ObjCharConsumer consumer = (ObjCharConsumer) createSetterCallSite(methodHandle, ObjCharConsumer.class, char.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (char) b);
@@ -196,14 +197,14 @@ final public class DynamicMapping {
 
         } else if (parameterType == short.class) {
 
-          ObjShortConsumer consumer = (ObjShortConsumer) createSetterCallSite(methodHandle, ObjShortConsumer.class, short.class).getTarget().invokeExact();
+          final ObjShortConsumer consumer = (ObjShortConsumer) createSetterCallSite(methodHandle, ObjShortConsumer.class, short.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (short) b);
           };
 
         } else {
-          ObjByteConsumer consumer = (ObjByteConsumer) createSetterCallSite(methodHandle, ObjByteConsumer.class, byte.class).getTarget().invokeExact();
+          final ObjByteConsumer consumer = (ObjByteConsumer) createSetterCallSite(methodHandle, ObjByteConsumer.class, byte.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(a, (byte) b);
@@ -212,7 +213,7 @@ final public class DynamicMapping {
         }
       } else if (parameterType == List.class || parameterType == ArrayList.class) {
 
-        ObjCollectionConsumer biConsumer = (ObjCollectionConsumer) createSetterCallSite(methodHandle, ObjCollectionConsumer.class, Collection.class).getTarget().invokeExact();
+        final ObjCollectionConsumer biConsumer = (ObjCollectionConsumer) createSetterCallSite(methodHandle, ObjCollectionConsumer.class, Collection.class).getTarget().invokeExact();
 
 //        final Class<?> typeParam = (Class<?>) ((ParameterizedType) method.getParameters()[0].getParameterizedType()).getActualTypeArguments()[0];
 
@@ -229,7 +230,7 @@ final public class DynamicMapping {
         };
       } else if (parameterType == Set.class || parameterType == HashSet.class) {
 
-        ObjCollectionConsumer biConsumer = (ObjCollectionConsumer) createSetterCallSite(methodHandle, ObjCollectionConsumer.class, Collection.class).getTarget().invokeExact();
+        final ObjCollectionConsumer biConsumer = (ObjCollectionConsumer) createSetterCallSite(methodHandle, ObjCollectionConsumer.class, Collection.class).getTarget().invokeExact();
 
         return (a, b) -> {
           Object obj = getterBeforeSetter.apply(a);
@@ -244,29 +245,32 @@ final public class DynamicMapping {
         };
       } else if (parameterType == Map.class || parameterType == HashMap.class || parameterType == ConcurrentHashMap.class) {
 
-        ObtMapConsumer biConsumer = (ObtMapConsumer) createSetterCallSite(methodHandle, ObtMapConsumer.class, Map.class).getTarget().invokeExact();
+        final ObtMapConsumer biConsumer = (ObtMapConsumer) createSetterCallSite(methodHandle, ObtMapConsumer.class, Map.class).getTarget().invokeExact();
 
         return (a, b) -> {
           Object obj = getterBeforeSetter.apply(a);
-          if (mappingFunc == null) {
-            // the types r the same
-            biConsumer.accept(obj, (Map) b);
-          } else {
 
-            Map<? extends Comparable, ?> result =
-                    (Map<? extends Comparable, ?>) ((Map) b)
-                            .entrySet()
-                            .stream()
-                            .map(mappingFunc)
-                            .collect(Collectors.toMap((Map.Entry entry) -> entry.getKey(),
-                                    (Map.Entry entry) -> entry.getValue(), (o, o2) -> o2));
-            biConsumer.accept(obj, result);
-          }
+          if (b == null) {
+            biConsumer.accept(obj, null);
+          } else if (mappingFunc == null) { //  // the types r the same
+
+              biConsumer.accept(obj, (Map) b);
+            } else { // the types r diff and there is a mapping function
+
+              Map<? extends Comparable, ?> result =
+                      (Map<? extends Comparable, ?>) ((Map) b)
+                              .entrySet()
+                              .stream()
+                              .map(mappingFunc)
+                              .collect(Collectors.toMap((Map.Entry entry) -> entry.getKey(),
+                                      (Map.Entry entry) -> entry.getValue(), (o, o2) -> o2));
+              biConsumer.accept(obj, result);
+            }
 
         };
       }
 
-      BiConsumer biConsumer = (BiConsumer) createSetterCallSite(methodHandle, BiConsumer.class, Object.class).getTarget().invokeExact();
+      final BiConsumer biConsumer = (BiConsumer) createSetterCallSite(methodHandle, BiConsumer.class, Object.class).getTarget().invokeExact();
       return (a, b) -> {
         Object obj = getterBeforeSetter.apply(a);
         biConsumer.accept(obj, b);
