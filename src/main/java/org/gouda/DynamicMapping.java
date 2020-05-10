@@ -219,13 +219,20 @@ final public class DynamicMapping {
 
         return (a, b) -> {
           Object obj = getterBeforeSetter.apply(a);
+
+          if (b == null) {
+            biConsumer.accept(obj, null);
+            return;
+          }
+
           if (mappingFunc == null) {
             // the types r the same
             biConsumer.accept(obj, (List) b);
-          } else {
-            List<?> result = getCollectionMapping((List) b, mappingFunc, () -> new ArrayList<>());
-            biConsumer.accept(obj, result);
+            return;
           }
+
+          List<?> result = getCollectionMapping((List) b, mappingFunc, () -> new ArrayList<>());
+          biConsumer.accept(obj, result);
 
         };
       } else if (parameterType == Set.class || parameterType == HashSet.class) {
@@ -234,13 +241,21 @@ final public class DynamicMapping {
 
         return (a, b) -> {
           Object obj = getterBeforeSetter.apply(a);
+
+          if (b == null) {
+            biConsumer.accept(obj, null);
+            return;
+          }
+
           if (mappingFunc == null) {
             // the types r the same
             biConsumer.accept(obj, (List) b);
-          } else {
-            Set<?> result = getCollectionMapping((Set) b, mappingFunc, () -> new HashSet<>());
-            biConsumer.accept(obj, result);
+            return;
           }
+
+          Set<?> result = getCollectionMapping((Set) b, mappingFunc, () -> new HashSet<>());
+          biConsumer.accept(obj, result);
+
 
         };
       } else if (parameterType == Map.class || parameterType == HashMap.class || parameterType == ConcurrentHashMap.class) {
@@ -252,20 +267,25 @@ final public class DynamicMapping {
 
           if (b == null) {
             biConsumer.accept(obj, null);
-          } else if (mappingFunc == null) { //  // the types r the same
+            return;
+          }
 
-              biConsumer.accept(obj, (Map) b);
-            } else { // the types r diff and there is a mapping function
+          if (mappingFunc == null) {  // the types r the same
 
-              Map<? extends Comparable, ?> result =
-                      (Map<? extends Comparable, ?>) ((Map) b)
-                              .entrySet()
-                              .stream()
-                              .map(mappingFunc)
-                              .collect(Collectors.toMap((Map.Entry entry) -> entry.getKey(),
-                                      (Map.Entry entry) -> entry.getValue(), (o, o2) -> o2));
-              biConsumer.accept(obj, result);
-            }
+            biConsumer.accept(obj, (Map) b);
+            return;
+          }
+          // the types r diff and there is a mapping function
+
+          Map<? extends Comparable, ?> result =
+                  (Map<? extends Comparable, ?>) ((Map) b)
+                          .entrySet()
+                          .stream()
+                          .map(mappingFunc)
+                          .collect(Collectors.toMap((Map.Entry entry) -> entry.getKey(),
+                                  (Map.Entry entry) -> entry.getValue(), (o, o2) -> o2));
+          biConsumer.accept(obj, result);
+
 
         };
       }
