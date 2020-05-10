@@ -4,8 +4,10 @@ package org.gouda;
 import org.gouda.BiConsumer.ObjBoolConsumer;
 import org.gouda.BiConsumer.ObjByteConsumer;
 import org.gouda.BiConsumer.ObjCharConsumer;
+import org.gouda.BiConsumer.ObjCollectionConsumer;
 import org.gouda.BiConsumer.ObjFloatConsumer;
 import org.gouda.BiConsumer.ObjShortConsumer;
+import org.gouda.BiConsumer.ObtMapConsumer;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaConversionException;
@@ -14,14 +16,24 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.function.ObjLongConsumer;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 final public class DynamicMapping {
@@ -29,7 +41,7 @@ final public class DynamicMapping {
   private static final Pattern              FIELD_SEPARATOR = Pattern.compile("\\.");
   private static final MethodHandles.Lookup LOOKUP          = MethodHandles.lookup();
 
-  private static final WeakHashMap<String, Tuple<Function, BiConsumer>> CACHE          = new WeakHashMap<>();
+  private static final WeakHashMap<String, Tuple<Function, BiConsumer>> CACHE = new WeakHashMap<>();
 
 
   private DynamicMapping() {
@@ -38,7 +50,7 @@ final public class DynamicMapping {
   public static <S, D> D map(S source, D destination, Rules rules) {
 
     for (Rule rule : rules.getRules()) {
-      destination =map(source,destination,rule);
+      destination = map(source, destination, rule);
     }
     return destination;
   }
@@ -47,8 +59,10 @@ final public class DynamicMapping {
 
     Tuple<Function, BiConsumer> getterAndSetter =
             CACHE.computeIfAbsent(rule.getName(), k -> {
+
               Function   getFunction    = createGetFunction(source.getClass(), FIELD_SEPARATOR.split(rule.getSourcePath()))._2;
-              BiConsumer setterConsumer = createSetterConsumer(destination.getClass(), FIELD_SEPARATOR.split(rule.getDestinationPath()));
+              BiConsumer setterConsumer = createSetterConsumer(destination.getClass(), FIELD_SEPARATOR.split(rule.getDestinationPath()), rule.getMapperFunction());
+
               return Tuple.of(getFunction, setterConsumer);
             });
 
@@ -104,28 +118,28 @@ final public class DynamicMapping {
   }
 
 
-  private static BiConsumer createSetterConsumer(Class aClass, String[] setMethodPath) {
+  private static BiConsumer createSetterConsumer(Class aClass, String[] setMethodPath, Function mappingFunc) {
 
     if (setMethodPath.length > 1) {
 
       String[]               getPath          = Arrays.copyOfRange(setMethodPath, 0, setMethodPath.length - 1);
       Tuple<Class, Function> getFunctionTuple = createGetFunction(aClass, getPath);
 
-      return createSetterFunction(setMethodPath[setMethodPath.length - 1], getFunctionTuple._1, getFunctionTuple._2);
+      return createSetterFunction(setMethodPath[setMethodPath.length - 1], getFunctionTuple._1, getFunctionTuple._2, mappingFunc);
     }
 
-    return createSetterFunction(setMethodPath[0], aClass, Function.identity());
+    return createSetterFunction(setMethodPath[0], aClass, Function.identity(), mappingFunc);
   }
 
-  private static BiConsumer createSetterFunction(String fieldName, Class<?> javaBeanClass, Function lastGetterForSetter) {
+  private static BiConsumer createSetterFunction(String fieldName, Class<?> javaBeanClass, Function lastGetterForSetter, Function mappingFunc) {
     return Stream.of(javaBeanClass.getDeclaredMethods())
             .filter(method -> method.getName().endsWith(fieldName) && method.getParameterCount() == 1)
-            .map(method -> createSetterBiConsumer(method, lastGetterForSetter))
+            .map(method -> createSetterBiConsumer(method, lastGetterForSetter, mappingFunc))
             .findFirst()
             .orElseThrow(IllegalStateException::new);
   }
 
-  private static BiConsumer createSetterBiConsumer(Method method, Function getterBeforeSetter) {
+  private static BiConsumer createSetterBiConsumer(Method method, Function getterBeforeSetter, Function mappingFunc) {
     try {
 
       MethodHandle methodHandle  = LOOKUP.unreflect(method);
@@ -196,6 +210,60 @@ final public class DynamicMapping {
           };
 
         }
+      } else if (parameterType == List.class || parameterType == ArrayList.class) {
+
+        ObjCollectionConsumer biConsumer = (ObjCollectionConsumer) createSetterCallSite(methodHandle, ObjCollectionConsumer.class, Collection.class).getTarget().invokeExact();
+
+//        final Class<?> typeParam = (Class<?>) ((ParameterizedType) method.getParameters()[0].getParameterizedType()).getActualTypeArguments()[0];
+
+        return (a, b) -> {
+          Object obj = getterBeforeSetter.apply(a);
+          if (mappingFunc == null) {
+            // the types r the same
+            biConsumer.accept(obj, (List) b);
+          } else {
+            List<?> result = getCollectionMapping((List) b, mappingFunc, () -> new ArrayList<>());
+            biConsumer.accept(obj, result);
+          }
+
+        };
+      } else if (parameterType == Set.class || parameterType == HashSet.class) {
+
+        ObjCollectionConsumer biConsumer = (ObjCollectionConsumer) createSetterCallSite(methodHandle, ObjCollectionConsumer.class, Collection.class).getTarget().invokeExact();
+
+        return (a, b) -> {
+          Object obj = getterBeforeSetter.apply(a);
+          if (mappingFunc == null) {
+            // the types r the same
+            biConsumer.accept(obj, (List) b);
+          } else {
+            Set<?> result = getCollectionMapping((Set) b, mappingFunc, () -> new HashSet<>());
+            biConsumer.accept(obj, result);
+          }
+
+        };
+      } else if (parameterType == Map.class || parameterType == HashMap.class || parameterType == ConcurrentHashMap.class) {
+
+        ObtMapConsumer biConsumer = (ObtMapConsumer) createSetterCallSite(methodHandle, ObtMapConsumer.class, Map.class).getTarget().invokeExact();
+
+        return (a, b) -> {
+          Object obj = getterBeforeSetter.apply(a);
+          if (mappingFunc == null) {
+            // the types r the same
+            biConsumer.accept(obj, (Map) b);
+          } else {
+
+            Map<? extends Comparable, ?> result =
+                    (Map<? extends Comparable, ?>) ((Map) b)
+                            .entrySet()
+                            .stream()
+                            .map(mappingFunc)
+                            .collect(Collectors.toMap((Map.Entry entry) -> entry.getKey(),
+                                    (Map.Entry entry) -> entry.getValue(), (o, o2) -> o2));
+            biConsumer.accept(obj, result);
+          }
+
+        };
       }
 
       BiConsumer biConsumer = (BiConsumer) createSetterCallSite(methodHandle, BiConsumer.class, Object.class).getTarget().invokeExact();
@@ -204,8 +272,20 @@ final public class DynamicMapping {
         biConsumer.accept(obj, b);
       };
     } catch (Throwable e) {
-      throw new IllegalArgumentException("Can't create lambda for setterMethod => " + method.getName() , e);
+      throw new IllegalArgumentException("Can't create lambda for setterMethod => " + method.getName(), e);
     }
+  }
+
+  private static <C extends Collection> C getCollectionMapping(Collection input, Function mappingFunc, Supplier<C> supplier) {
+
+    if (mappingFunc == null) {
+      throw new IllegalArgumentException("Needs Static mapper function to map different types, function can't be null");
+    }
+
+    return (C) input
+            .stream()
+            .map(mappingFunc)
+            .collect(Collectors.toCollection(supplier));
   }
 
   private static CallSite createSetterCallSite(MethodHandle setterMethodHandle, Class<?> biConsumerClass, Class<?> parameterType) throws

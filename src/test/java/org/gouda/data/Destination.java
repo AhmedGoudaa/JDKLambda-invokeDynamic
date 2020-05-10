@@ -5,17 +5,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Destination {
 
-  int         id;
-  String      name;
-  int         age;
-  Address     address;
-  List<Phone> phoneList;
+  int                  id;
+  String               name;
+  int                  age;
+  Address              address;
+  List<Phone>          phoneList;
+  Map<Integer , String>  mapSimple;
+  Map<Integer , Integer>  mapComplicated;
 
 
   @Data
