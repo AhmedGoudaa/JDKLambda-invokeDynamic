@@ -28,6 +28,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.function.ObjLongConsumer;
@@ -173,7 +174,8 @@ final public class DynamicMapping {
 
         } else if (parameterType == boolean.class) {
 
-          final ObjBoolConsumer consumer = (ObjBoolConsumer) createSetterCallSite(methodHandle, ObjLongConsumer.class, boolean.class).getTarget().invokeExact();
+          final ObjBoolConsumer consumer = (ObjBoolConsumer) createSetterCallSite(methodHandle, ObjBoolConsumer.class, boolean.class).getTarget().invokeExact();
+
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (boolean) b);
@@ -181,7 +183,7 @@ final public class DynamicMapping {
 
         } else if (parameterType == float.class) {
 
-          final ObjFloatConsumer consumer = (ObjFloatConsumer) createSetterCallSite(methodHandle, ObjLongConsumer.class, float.class).getTarget().invokeExact();
+          final ObjFloatConsumer consumer = (ObjFloatConsumer) createSetterCallSite(methodHandle, ObjFloatConsumer.class, float.class).getTarget().invokeExact();
           return (a, b) -> {
             Object obj = getterBeforeSetter.apply(a);
             consumer.accept(obj, (float) b);

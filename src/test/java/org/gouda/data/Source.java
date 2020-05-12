@@ -13,13 +13,14 @@ import java.util.Map;
 @NoArgsConstructor
 public class Source {
 
-  int                   id;
-  String                name;
-  int                   age;
-  Address               address;
-  List<Phone>           phones;
-  Map<Integer , String>  mapSimple;
-  Map<Integer , String>  mapComplicated;
+  int                  id;
+  String               name;
+  int                  age;
+  float                salary;
+  Address              address;
+  List<Phone>          phones;
+  Map<Integer, String> mapSimple;
+  Map<Integer, String> mapComplicated;
 
   @Data
   @AllArgsConstructor

@@ -15,6 +15,7 @@ public class Destination {
   int                  id;
   String               name;
   int                  age;
+  float                salary;
   Address              address;
   List<Phone>          phoneList;
   Map<Integer , String>  mapSimple;
